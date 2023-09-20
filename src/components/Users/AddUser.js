@@ -1,21 +1,14 @@
 ﻿import classes from "./AddUser.module.css";
 import Card from "../UI/Card";
 import Button from "../UI/Button";
-import { Fragment, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import ErrorModal from "../UI/ErrorModal";
 
 const AddUser = (props) => {
-  const [enteredUserName, setEnteredUserName] = useState("");
-  const [enteredAge, setEnteredAge] = useState("");
   const [error, setError] = useState();
 
-  const userNameChangeHandler = (event) => {
-    setEnteredUserName(event.target.value);
-  };
-
-  const ageChangeHandler = (event) => {
-    setEnteredAge(event.target.value);
-  };
+  const nameInputRef = useRef(null);
+  const ageInputRef = useRef(null);
 
   const errorHandler = () => {
     setError(null);
@@ -23,7 +16,14 @@ const AddUser = (props) => {
 
   const addUserHandler = (event) => {
     event.preventDefault();
-    if (enteredUserName.trim().length === 0 || enteredAge.trim().length === 0) {
+
+    const enteredUserName = nameInputRef.current.value;
+    const enteredUserAge = ageInputRef.current.value;
+
+    if (
+      enteredUserName.trim().length === 0 ||
+      enteredUserAge.trim().length === 0
+    ) {
       setError({
         title: "Invalid input",
         message: "Please enter a valid name and age (non-empty values)",
@@ -31,7 +31,7 @@ const AddUser = (props) => {
       return;
     }
 
-    if (+enteredAge < 1) {
+    if (+enteredUserAge < 1) {
       setError({
         title: "Invalid age",
         message: "Please enter a valid age (> 0)",
@@ -39,14 +39,18 @@ const AddUser = (props) => {
       return;
     }
 
-    console.log(enteredUserName, enteredAge);
+    //console.log(enteredUserName, enteredAge);
     props.onAddUser({
       id: Math.random().toString(),
       name: enteredUserName,
-      age: enteredAge,
+      age: enteredUserAge,
     });
-    setEnteredAge("");
-    setEnteredUserName("");
+
+    //this is manipulating the DOM directly, could be argued it shouldn't be done
+    //however, using refs to read values gets rid of a lot of code that we'd need to
+    //use state to do the same
+    nameInputRef.current.value = "";
+    ageInputRef.current.value = "";
   };
 
   // htmlFor is to associate the label to the input
@@ -62,19 +66,9 @@ const AddUser = (props) => {
       <Card className={classes.input}>
         <form onSubmit={addUserHandler}>
           <label htmlFor="userName">UserName</label>
-          <input
-            id="userName"
-            type="text"
-            onChange={userNameChangeHandler}
-            value={enteredUserName}
-          ></input>
+          <input id="userName" type="text" ref={nameInputRef}></input>
           <label htmlFor="age">Age (Years)</label>
-          <input
-            id="age"
-            type="number"
-            onChange={ageChangeHandler}
-            value={enteredAge}
-          />
+          <input id="age" type="number" ref={ageInputRef} />
           <Button type="submit">Add User</Button>
         </form>
       </Card>
